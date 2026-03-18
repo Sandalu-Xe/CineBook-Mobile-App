@@ -4,22 +4,23 @@ import 'package:go_router/go_router.dart';
 import '../core/app_colors.dart';
 import '../viewmodels/auth_viewmodel.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({Key? key}) : super(key: key);
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<SignUpScreen> createState() => _SignUpScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _SignUpScreenState extends State<SignUpScreen> {
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     final authViewModel = Provider.of<AuthViewModel>(context);
 
-    // Show errors if they exist
     if (authViewModel.errorMessage != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -45,56 +46,81 @@ class _LoginScreenState extends State<LoginScreen> {
             topRight: Radius.circular(32),
           ),
         ),
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
               
               // Custom Login / Sign Up Tab Mock
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Login', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontSize: 18)),
-                  const SizedBox(width: 32),
                   GestureDetector(
-                    onTap: () => context.pushReplacement('/signup'),
-                    child: Text('Sign Up', style: TextStyle(fontWeight: FontWeight.normal, color: AppColors.textSecondary, fontSize: 18)),
+                    onTap: () => context.pushReplacement('/login'),
+                    child: Text('Login', style: TextStyle(fontWeight: FontWeight.normal, color: AppColors.textSecondary, fontSize: 18)),
                   ),
+                  const SizedBox(width: 32),
+                  Text('Sign Up', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontSize: 18)),
                 ],
               ),
               const SizedBox(height: 48),
 
               TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Full Name',
+                  hintText: 'John Doe',
+                  prefixIcon: Icon(Icons.person_outline),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Email',
                   hintText: 'you@example.com',
-                  prefixIcon: const Icon(Icons.email_outlined),
+                  prefixIcon: Icon(Icons.email_outlined),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _phoneController,
+                keyboardType: TextInputType.phone,
+                decoration: const InputDecoration(
+                  labelText: 'Phone Number',
+                  hintText: '+94 77 123 4567',
+                  prefixIcon: Icon(Icons.phone_outlined),
                 ),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: _passwordController,
                 obscureText: true,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Password',
-                  prefixIcon: const Icon(Icons.lock_outline),
+                  prefixIcon: Icon(Icons.lock_outline),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Checkbox(value: false, onChanged: (v){}),
-                      const Text('Remember me'),
-                    ],
+                  Checkbox(value: false, onChanged: (v){}),
+                  Expanded(
+                    child: RichText(
+                      text: const TextSpan(
+                        style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                        children: [
+                          TextSpan(text: 'I agree to the '),
+                          TextSpan(text: 'Terms of Service', style: TextStyle(color: AppColors.primary)),
+                          TextSpan(text: ' and '),
+                          TextSpan(text: 'Privacy Policy', style: TextStyle(color: AppColors.primary)),
+                        ],
+                      ),
+                    ),
                   ),
-                  TextButton(onPressed: (){}, child: const Text('Forgot password?')),
                 ],
               ),
               const SizedBox(height: 24),
@@ -103,11 +129,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: authViewModel.isLoading 
                   ? null 
                   : () async {
-                      if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
+                      if (_emailController.text.isEmpty || _passwordController.text.isEmpty || _nameController.text.isEmpty) {
+                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all required fields')));
                          return;
                       }
-                      final success = await authViewModel.login(
+                      final success = await authViewModel.signUp(
+                        _nameController.text.trim(),
                         _emailController.text.trim(), 
                         _passwordController.text.trim()
                       );
@@ -117,31 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                 child: authViewModel.isLoading 
                     ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Text('Login'),
-              ),
-              const SizedBox(height: 32),
-              
-              // Social Mock
-              const Center(child: Text('Or continue with', style: TextStyle(color: AppColors.textSecondary))),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => context.go('/home'), // Mock bypass
-                      icon: const Icon(Icons.g_mobiledata, color: Colors.red),
-                      label: const Text('Google', style: TextStyle(color: AppColors.textPrimary)),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => context.go('/home'), // Mock bypass
-                      icon: const Icon(Icons.facebook, color: Colors.blue),
-                      label: const Text('Facebook', style: TextStyle(color: AppColors.textPrimary)),
-                    ),
-                  ),
-                ],
+                    : const Text('Create Account'),
               ),
             ],
           ),
@@ -152,7 +155,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     super.dispose();
   }

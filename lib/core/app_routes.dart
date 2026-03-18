@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../views/welcome_screen.dart';
 import '../views/login_screen.dart';
+import '../views/signup_screen.dart';
 import '../views/home_screen.dart';
 import '../views/movie_details_screen.dart';
 import '../views/cinema_selector_screen.dart';
@@ -25,6 +26,10 @@ class AppRoutes {
       GoRoute(
         path: login,
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/signup',
+        builder: (context, state) => const SignUpScreen(),
       ),
       GoRoute(
         path: home,

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "491375338694",
+    "project_id": "cinebook-mobile-app",
+    "storage_bucket": "cinebook-mobile-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:491375338694:android:00ad40bf65a50fd019e3c7",
+        "android_client_info": {
+          "package_name": "CineBook.Developes.Com"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC9W_BjpRbMKLRkBCEsZx7h9ch-7XxaPVg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:491375338694:android:81895c361af7504619e3c7",
+        "android_client_info": {
+          "package_name": "com.example.cinebook"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC9W_BjpRbMKLRkBCEsZx7h9ch-7XxaPVg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
