@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../core/app_colors.dart';
 import '../models/core_models.dart';
 import 'cinema_map_screen.dart';
+import '../services/database_service.dart';
 
 class CinemaSelectorScreen extends StatelessWidget {
   final String movieId;
@@ -10,36 +11,7 @@ class CinemaSelectorScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Mock data for cinemas
-    final mockCinemas = [
-      Cinema(
-        id: 'c1',
-        name: 'Liberty Cinema',
-        location: 'Colombo 03, Dharmapala Mawatha',
-        distanceKm: 2.5,
-        latitude: 6.9099,
-        longitude: 79.8510,
-        showtimes: [
-          Showtime(id: 's1', time: '10:30 AM', format: '2D', price: 850, availableSeats: 45),
-          Showtime(id: 's2', time: '01:45 PM', format: '3D', price: 1200, availableSeats: 32),
-          Showtime(id: 's3', time: '04:30 PM', format: 'IMAX', price: 1500, availableSeats: 18, isFillingFast: true),
-          Showtime(id: 's4', time: '07:15 PM', format: '3D', price: 1200, availableSeats: 12, isFillingFast: true),
-          Showtime(id: 's5', time: '10:00 PM', format: '2D', price: 850, availableSeats: 56),
-        ],
-      ),
-      Cinema(
-        id: 'c2',
-        name: 'Scope Cinemas',
-        location: 'Colombo City Centre',
-        distanceKm: 4.2,
-        latitude: 6.9150,
-        longitude: 79.8580,
-        showtimes: [
-          Showtime(id: 's6', time: '11:00 AM', format: '2D', price: 1000, availableSeats: 60),
-          Showtime(id: 's7', time: '02:30 PM', format: 'ATMOS', price: 1300, availableSeats: 20, isFillingFast: true),
-        ],
-      ),
-    ];
+    final DatabaseService _db = DatabaseService();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -88,11 +60,27 @@ class CinemaSelectorScreen extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: mockCinemas.length,
-              itemBuilder: (context, index) {
-                return _buildCinemaCard(context, mockCinemas[index]);
+            child: StreamBuilder<List<Cinema>>(
+              stream: _db.getCinemasStream(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error loading cinemas: ${snapshot.error}'));
+                }
+                final liveCinemas = snapshot.data ?? [];
+                if (liveCinemas.isEmpty) {
+                  return const Center(child: Text('No cinemas found. Please press the download button on the Home Screen.'));
+                }
+                
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: liveCinemas.length,
+                  itemBuilder: (context, index) {
+                    return _buildCinemaCard(context, liveCinemas[index]);
+                  },
+                );
               },
             ),
           ),

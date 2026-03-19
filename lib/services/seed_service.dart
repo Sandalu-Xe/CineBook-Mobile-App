@@ -118,6 +118,50 @@ class SeedService {
           Showtime(id: 's9', time: '03:30 PM', format: '2D', price: 800, availableSeats: 40, isFillingFast: false),
         ],
       ),
+      Cinema(
+        id: 'cin7',
+        name: 'KCC Multiplex',
+        location: 'Kandy City Centre, Kandy',
+        distanceKm: 115.0,
+        latitude: 7.2936,
+        longitude: 80.6380,
+        showtimes: [
+          Showtime(id: 's10', time: '01:00 PM', format: '2D', price: 800, availableSeats: 120, isFillingFast: false),
+        ],
+      ),
+      Cinema(
+        id: 'cin8',
+        name: 'Queens Cinema',
+        location: 'Galle',
+        distanceKm: 119.0,
+        latitude: 6.0367,
+        longitude: 80.2170,
+        showtimes: [
+          Showtime(id: 's11', time: '04:30 PM', format: '2D', price: 700, availableSeats: 85, isFillingFast: false),
+        ],
+      ),
+      Cinema(
+        id: 'cin9',
+        name: 'Vista Lite Cinema',
+        location: 'Ja-Ela',
+        distanceKm: 20.0,
+        latitude: 7.0812,
+        longitude: 79.8893,
+        showtimes: [
+          Showtime(id: 's12', time: '10:30 AM', format: '3D', price: 1000, availableSeats: 30, isFillingFast: true),
+        ],
+      ),
+      Cinema(
+        id: 'cin10',
+        name: 'Suganthi Cinema',
+        location: 'Jaffna',
+        distanceKm: 395.0,
+        latitude: 9.6645,
+        longitude: 80.0167,
+        showtimes: [
+          Showtime(id: 's13', time: '06:00 PM', format: '2D', price: 600, availableSeats: 150, isFillingFast: false),
+        ],
+      ),
     ];
 
     // Write movies
