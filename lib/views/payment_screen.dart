@@ -16,13 +16,60 @@ class PaymentScreen extends StatefulWidget {
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _cardNumberController = TextEditingController();
   final _expiryController = TextEditingController();
   final _cvvController = TextEditingController();
   final _nameController = TextEditingController();
 
+  String _displayCardNumber = '****  ****  ****  3456';
+  String _displayName = 'ADUKE MOREWA';
+  String _displayExpiry = '09/24';
+
+  @override
+  void initState() {
+    super.initState();
+    // Add real-time listeners for dynamic Virtual Card rendering
+    _cardNumberController.addListener(() {
+      setState(() {
+        _displayCardNumber = _cardNumberController.text.isNotEmpty 
+            ? _cardNumberController.text 
+            : '****  ****  ****  3456';
+      });
+    });
+    
+    _nameController.addListener(() {
+      setState(() {
+        _displayName = _nameController.text.isNotEmpty 
+            ? _nameController.text.toUpperCase() 
+            : 'ADUKE MOREWA';
+      });
+    });
+    
+    _expiryController.addListener(() {
+      setState(() {
+        _displayExpiry = _expiryController.text.isNotEmpty 
+            ? _expiryController.text 
+            : '09/24';
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _cardNumberController.dispose();
+    _expiryController.dispose();
+    _cvvController.dispose();
+    _nameController.dispose();
+    super.dispose();
+  }
+
   Future<void> _processFinalPayment() async {
-    // Show loading boundary while checking out
+    // 1. Strict Form Validation checks before networking
+    if (!_formKey.currentState!.validate()) {
+      return; 
+    }
+
     showDialog(
         context: context,
         barrierDismissible: false,
@@ -38,7 +85,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
       final userId = FirebaseAuth.instance.currentUser?.uid ?? 'guest';
 
-      // Fetch movie from database to complete Ticket model payload
       final movieDoc = await FirebaseFirestore.instance.collection('movies').doc(movieId).get();
       if (!movieDoc.exists) throw Exception('Movie not found');
       final movie = Movie.fromFirestore(movieDoc);
@@ -61,7 +107,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         splitWithEmails: isSplitPayment ? [splitEmail] : [],
       );
 
-      // 1. Process secure transaction through Mock Payment Gateway
+      // 2. Process secure transaction through Mock Payment Gateway
       final paymentService = PaymentGatewayService();
       await paymentService.processPayment(
         ticketId: ticketRef.id,
@@ -73,7 +119,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         amount: totalPrice.toDouble(),
       );
 
-      // 2. Insert ticket into Firebase database only on success!
+      // 3. Insert ticket into Firebase database only on bank success!
       await DatabaseService().bookTicket(ticket);
 
       if (mounted) {
@@ -86,14 +132,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        // Instantly transition to specific ticket detail view to show QR Code!
         context.pushReplacement('/ticket-details', extra: ticket);
       }
     } catch (e) {
       if (mounted) {
         Navigator.pop(context); // remove loading dialog
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Payment transaction failed: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Bank Declined: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -146,60 +191,120 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Widget _buildPaymentForm() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-              child: const Icon(Icons.fast_forward, color: Colors.white, size: 20),
-            ),
-            const SizedBox(width: 12),
-            const Text('CinePay Gateway', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-          ],
-        ),
-        const SizedBox(height: 32),
-        _buildTextField('Cardholder Name', 'Aduke Morewa', _nameController, icon: Icons.person_outline),
-        const SizedBox(height: 20),
-        _buildTextField('Card Number', '0000 0000 0000 0000', _cardNumberController, icon: Icons.credit_card),
-        const SizedBox(height: 20),
-        Row(
-          children: [
-            Expanded(child: _buildTextField('Expiry Date', 'MM/YY', _expiryController, icon: Icons.date_range)),
-            const SizedBox(width: 20),
-            Expanded(child: _buildTextField('CVV', '123', _cvvController, icon: Icons.security, obscureText: true)),
-          ],
-        ),
-        const SizedBox(height: 32),
-        SizedBox(
-          width: double.infinity,
-          height: 56,
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              elevation: 4,
-            ),
-            onPressed: _processFinalPayment,
-            child: const Text('Pay Now', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                child: const Icon(Icons.fast_forward, color: Colors.white, size: 20),
+              ),
+              const SizedBox(width: 12),
+              const Text('CinePay Gateway', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+            ],
           ),
-        ),
-      ],
+          const SizedBox(height: 32),
+          _buildTextField(
+            'Cardholder Name', 
+            'Aduke Morewa', 
+            _nameController, 
+            icon: Icons.person_outline,
+            validator: (val) {
+              if (val == null || val.trim().isEmpty) return 'Please enter the exact name on card';
+              return null;
+            }
+          ),
+          const SizedBox(height: 20),
+          _buildTextField(
+            'Card Number', 
+            '0000 0000 0000 0000', 
+            _cardNumberController, 
+            icon: Icons.credit_card,
+            keyboardType: TextInputType.number,
+            validator: (val) {
+              if (val == null || val.replaceAll(' ', '').length < 15) return 'Please enter a valid 16-digit card number';
+              return null;
+            }
+          ),
+          const SizedBox(height: 20),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: _buildTextField(
+                  'Expiry Date', 
+                  'MM/YY', 
+                  _expiryController, 
+                  icon: Icons.date_range,
+                  keyboardType: TextInputType.datetime,
+                  validator: (val) {
+                    if (val == null || !RegExp(r'^(0[1-9]|1[0-2])\/?([0-9]{2})$').hasMatch(val)) return 'Invalid Expiry';
+                    return null;
+                  }
+                )
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: _buildTextField(
+                  'CVV', 
+                  '123', 
+                  _cvvController, 
+                  icon: Icons.security, 
+                  obscureText: true,
+                  keyboardType: TextInputType.number,
+                  validator: (val) {
+                    if (val == null || val.length < 3) return 'Invalid CVV';
+                    return null;
+                  }
+                )
+              ),
+            ],
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 4,
+              ),
+              onPressed: _processFinalPayment,
+              child: const Text('Pay Now', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildTextField(String label, String hint, TextEditingController controller, {IconData? icon, bool obscureText = false}) {
+  Widget _buildTextField(
+    String label, 
+    String hint, 
+    TextEditingController controller, 
+    {
+      IconData? icon, 
+      bool obscureText = false,
+      String? Function(String?)? validator,
+      TextInputType? keyboardType,
+    }
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textPrimary)),
         const SizedBox(height: 8),
-        TextField(
+        TextFormField(
           controller: controller,
           obscureText: obscureText,
+          keyboardType: keyboardType,
           style: const TextStyle(color: AppColors.textPrimary),
+          validator: validator,
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(color: Colors.grey.shade400),
@@ -214,6 +319,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.red, width: 2),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.red, width: 2),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -277,6 +390,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  // Virtual Card dynamically updates using State Variables
   Widget _buildVirtualCard() {
     return Container(
       width: double.infinity,
@@ -284,7 +398,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF8E2DE2), Color(0xFF4A00E0)], // Purple sleek gradient
+          colors: [Color(0xFF8E2DE2), Color(0xFF4A00E0)], 
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -308,25 +422,26 @@ class _PaymentScreenState extends State<PaymentScreen> {
               const Icon(Icons.wifi, color: Colors.white70),
             ],
           ),
-          const Text(
-            '****  ****  ****  3456',
-            style: TextStyle(color: Colors.white, fontSize: 20, letterSpacing: 2, fontFamily: 'Courier'),
+          Text(
+            _displayCardNumber,
+            style: const TextStyle(color: Colors.white, fontSize: 18, letterSpacing: 2, fontFamily: 'Courier'),
+            overflow: TextOverflow.ellipsis,
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text('Card Holder', style: TextStyle(color: Colors.white54, fontSize: 10)),
-                  Text('ADUKE MOREWA', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                children: [
+                  const Text('Card Holder', style: TextStyle(color: Colors.white54, fontSize: 10)),
+                  Text(_displayName, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
                 ],
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text('Expires', style: TextStyle(color: Colors.white54, fontSize: 10)),
-                  Text('09/24', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                children: [
+                  const Text('Expires', style: TextStyle(color: Colors.white54, fontSize: 10)),
+                  Text(_displayExpiry, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
                 ],
               ),
             ],
