@@ -16,6 +16,8 @@ class CinemaSelectorScreen extends StatelessWidget {
         name: 'Liberty Cinema',
         location: 'Colombo 03, Dharmapala Mawatha',
         distanceKm: 2.5,
+        latitude: 6.9099,
+        longitude: 79.8510,
         showtimes: [
           Showtime(id: 's1', time: '10:30 AM', format: '2D', price: 850, availableSeats: 45),
           Showtime(id: 's2', time: '01:45 PM', format: '3D', price: 1200, availableSeats: 32),
@@ -29,6 +31,8 @@ class CinemaSelectorScreen extends StatelessWidget {
         name: 'Scope Cinemas',
         location: 'Colombo City Centre',
         distanceKm: 4.2,
+        latitude: 6.9150,
+        longitude: 79.8580,
         showtimes: [
           Showtime(id: 's6', time: '11:00 AM', format: '2D', price: 1000, availableSeats: 60),
           Showtime(id: 's7', time: '02:30 PM', format: 'ATMOS', price: 1300, availableSeats: 20, isFillingFast: true),

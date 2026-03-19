@@ -5,6 +5,7 @@ import '../core/app_colors.dart';
 import '../viewmodels/home_viewmodel.dart';
 import '../models/core_models.dart';
 import '../services/seed_service.dart';
+import 'cinema_map_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -35,6 +36,12 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('CineBook'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.map_outlined),
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const CinemaMapScreen()));
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.confirmation_number_outlined),
             onPressed: () {},

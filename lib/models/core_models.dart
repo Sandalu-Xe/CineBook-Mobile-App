@@ -57,6 +57,8 @@ class Cinema {
   final String name;
   final String location;
   final double distanceKm;
+  final double latitude;
+  final double longitude;
   final List<Showtime> showtimes;
 
   Cinema({
@@ -64,6 +66,8 @@ class Cinema {
     required this.name,
     required this.location,
     required this.distanceKm,
+    required this.latitude,
+    required this.longitude,
     required this.showtimes,
   });
 
@@ -83,6 +87,8 @@ class Cinema {
       name: data['name'] ?? '',
       location: data['location'] ?? '',
       distanceKm: (data['distanceKm'] ?? 0.0).toDouble(),
+      latitude: (data['latitude'] ?? 0.0).toDouble(),
+      longitude: (data['longitude'] ?? 0.0).toDouble(),
       showtimes: parsedShowtimes,
     );
   }
@@ -92,6 +98,8 @@ class Cinema {
       'name': name,
       'location': location,
       'distanceKm': distanceKm,
+      'latitude': latitude,
+      'longitude': longitude,
       'showtimes': showtimes.map((s) => s.toMap()).toList(),
     };
   }

@@ -53,6 +53,8 @@ class SeedService {
       name: 'PVR Cinemas',
       location: 'One Galle Face Mall',
       distanceKm: 2.5,
+      latitude: 6.9271,
+      longitude: 79.8436,
       showtimes: [
         Showtime(id: 's1', time: '10:00 AM', format: '2D', price: 1000, availableSeats: 50, isFillingFast: false),
         Showtime(id: 's2', time: '01:30 PM', format: '3D', price: 1500, availableSeats: 12, isFillingFast: true),
