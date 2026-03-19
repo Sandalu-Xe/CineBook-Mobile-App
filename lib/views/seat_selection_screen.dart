@@ -3,9 +3,13 @@ import 'package:go_router/go_router.dart';
 import '../core/app_colors.dart';
 import '../models/core_models.dart';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../services/database_service.dart';
+
 class SeatSelectionScreen extends StatefulWidget {
-  final Showtime? showtime; // Getting showtime passed via route state
-  const SeatSelectionScreen({Key? key, this.showtime}) : super(key: key);
+  final Map<String, dynamic>? bookingData; // Getting booking bundle
+  const SeatSelectionScreen({Key? key, this.bookingData}) : super(key: key);
 
   @override
   State<SeatSelectionScreen> createState() => _SeatSelectionScreenState();
@@ -176,7 +180,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                         children: [
                           const Text('Total Price', style: TextStyle(color: AppColors.textSecondary)),
                           Text(
-                            'LKR ${(_selectedSeats.length * (widget.showtime?.price ?? 1000)).toInt()}',
+                            'LKR ${(_selectedSeats.length * (widget.bookingData?['showtime']?.price ?? 1000)).toInt()}',
                             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.primary),
                           ),
                         ],
@@ -240,8 +244,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
               OutlinedButton.icon(
                 onPressed: () {
                   Navigator.pop(context);
-                  context.push('/tickets'); // Navigate to tickets to complete flow
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invites sent for Group Split-Payment!')));
+                  _showSplitPaymentDialog(context);
                 },
                 icon: const Icon(Icons.group, color: AppColors.primary),
                 label: const Text('Group Split-Payment', style: TextStyle(color: AppColors.primary)),
@@ -255,22 +258,9 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
               
               // Pay Now
               ElevatedButton.icon(
-                onPressed: () async {
-                  Navigator.pop(context);
-                  try {
-                    // Simulated Delay / Booking
-                    await Future.delayed(const Duration(seconds: 1));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Ticket successfully booked!'), backgroundColor: Colors.green),
-                    );
-                    if (context.mounted) {
-                      context.push('/tickets');
-                    }
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Ticket booking failed!'), backgroundColor: Colors.red),
-                    );
-                  }
+                onPressed: () {
+                  Navigator.pop(context); // Close bottom payment sheet
+                  _processBooking(isSplitPayment: false);
                 },
                 icon: const Icon(Icons.payment, color: Colors.white),
                 label: const Text('Pay Full Amount', style: TextStyle(color: Colors.white)),
@@ -285,6 +275,69 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         );
       },
     );
+  }
+
+  void _showSplitPaymentDialog(BuildContext context) {
+    final emailController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('Split Payment'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Enter the email of the friend you want to split this booking with.', style: TextStyle(fontSize: 14)),
+              const SizedBox(height: 16),
+              TextField(
+                controller: emailController,
+                decoration: InputDecoration(
+                  labelText: "Friend's Email",
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  prefixIcon: const Icon(Icons.email),
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () {
+                final email = emailController.text.trim();
+                if (email.isEmpty || !email.contains('@')) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a valid email')));
+                  return;
+                }
+                Navigator.pop(context); // Close dialog
+                _processBooking(isSplitPayment: true, splitEmail: email);
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+              child: const Text('Send Invite', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      }
+    );
+  }
+
+  void _processBooking({required bool isSplitPayment, String splitEmail = ''}) {
+    if (widget.bookingData == null) return;
+    if (_selectedSeats.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select at least one seat!')));
+      return;
+    }
+
+    final checkoutData = {
+      ...widget.bookingData!,
+      'selectedSeats': _selectedSeats.toList(),
+      'isSplitPayment': isSplitPayment,
+      'splitEmail': splitEmail,
+    };
+
+    context.push('/payment', extra: checkoutData);
   }
 }
 

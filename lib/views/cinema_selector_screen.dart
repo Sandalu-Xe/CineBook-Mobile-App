@@ -172,7 +172,7 @@ class CinemaSelectorScreen extends StatelessWidget {
             Wrap(
               spacing: 12,
               runSpacing: 12,
-              children: cinema.showtimes.map((s) => _buildShowtimeCard(context, s)).toList(),
+              children: cinema.showtimes.map((s) => _buildShowtimeCard(context, cinema, s)).toList(),
             ),
           ],
         ),
@@ -180,10 +180,14 @@ class CinemaSelectorScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildShowtimeCard(BuildContext context, Showtime showtime) {
+  Widget _buildShowtimeCard(BuildContext context, Cinema cinema, Showtime showtime) {
     return GestureDetector(
       onTap: () {
-        context.push('/seat-selection', extra: showtime);
+        context.push('/seat-selection', extra: {
+          'movieId': movieId,
+          'cinema': cinema,
+          'showtime': showtime,
+        });
       },
       child: Container(
         width: 120, // Increased from 100 to fix layout overflow

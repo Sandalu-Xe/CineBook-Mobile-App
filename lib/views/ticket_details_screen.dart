@@ -23,6 +23,35 @@ class TicketDetailsScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+            if (ticket.isSplitPayment)
+              Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  border: Border.all(color: Colors.orange),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 32),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Split Payment Pending', style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold, fontSize: 16)),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Waiting for ${ticket.splitWithEmails.join(', ')} to pay their share of LKR ${(ticket.totalAmount / (ticket.splitWithEmails.length + 1)).toInt()}',
+                            style: const TextStyle(color: Colors.orange, fontSize: 13),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             // QR Code Card
             Card(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -36,14 +65,19 @@ class TicketDetailsScreen extends StatelessWidget {
                         border: Border.all(color: AppColors.primary, width: 2),
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: QrImageView(
-                        data: ticket.id,
-                        version: QrVersions.auto,
-                        size: 200.0,
-                      )
+                      child: ticket.isSplitPayment 
+                        ? const Padding(
+                            padding: EdgeInsets.all(60.0),
+                            child: Icon(Icons.lock_outline, size: 80, color: AppColors.primary),
+                          )
+                        : QrImageView(
+                            data: ticket.id,
+                            version: QrVersions.auto,
+                            size: 200.0,
+                          )
                     ),
                     const SizedBox(height: 16),
-                    const Text('Scan at entrance', style: TextStyle(color: AppColors.textSecondary)),
+                    Text(ticket.isSplitPayment ? 'Ticket Locked' : 'Scan at entrance', style: const TextStyle(color: AppColors.textSecondary)),
                     const SizedBox(height: 4),
                     Text('Booking Ref: ${ticket.id}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                   ],

@@ -9,6 +9,8 @@ import '../views/cinema_selector_screen.dart';
 import '../views/seat_selection_screen.dart';
 import '../views/tickets_screen.dart';
 import '../views/ticket_details_screen.dart';
+import '../views/payment_screen.dart';
+import '../views/profile_screen.dart';
 import '../models/core_models.dart';
 
 class AppRoutes {
@@ -52,8 +54,8 @@ class AppRoutes {
       GoRoute(
         path: '/seat-selection',
         builder: (context, state) {
-          final showtime = state.extra as Showtime?;
-          return SeatSelectionScreen(showtime: showtime);
+          final bookingData = state.extra as Map<String, dynamic>?;
+          return SeatSelectionScreen(bookingData: bookingData);
         },
       ),
       GoRoute(
@@ -68,6 +70,17 @@ class AppRoutes {
           final ticket = state.extra as Ticket;
           return TicketDetailsScreen(ticket: ticket);
         },
+      ),
+      GoRoute(
+        path: '/payment',
+        builder: (context, state) {
+          final checkoutData = state.extra as Map<String, dynamic>;
+          return PaymentScreen(checkoutData: checkoutData);
+        },
+      ),
+      GoRoute(
+        path: '/profile',
+        builder: (context, state) => const ProfileScreen(),
       ),
     ],
   );

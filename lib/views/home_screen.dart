@@ -52,11 +52,15 @@ class HomeScreen extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.confirmation_number_outlined),
-            onPressed: () {},
+            onPressed: () {
+              context.push('/tickets');
+            },
           ),
           IconButton(
             icon: const Icon(Icons.person_outline),
-            onPressed: () {},
+            onPressed: () {
+              context.push('/profile');
+            },
           ),
         ],
         bottom: PreferredSize(

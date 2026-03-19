@@ -155,6 +155,9 @@ class Ticket {
   final List<String> seatNumbers;
   final double totalAmount;
   final bool isActive;
+  final String status;
+  final bool isSplitPayment;
+  final List<String> splitWithEmails;
 
   Ticket({
     required this.id,
@@ -166,6 +169,9 @@ class Ticket {
     required this.seatNumbers,
     required this.totalAmount,
     this.isActive = true,
+    this.status = 'Valid',
+    this.isSplitPayment = false,
+    this.splitWithEmails = const [],
   });
 
   factory Ticket.fromFirestore(DocumentSnapshot doc) {
@@ -184,6 +190,9 @@ class Ticket {
       seatNumbers: List<String>.from(data['seatNumbers'] ?? []),
       totalAmount: (data['totalAmount'] ?? 0.0).toDouble(),
       isActive: data['isActive'] ?? true,
+      status: data['status'] ?? 'Valid',
+      isSplitPayment: data['isSplitPayment'] ?? false,
+      splitWithEmails: List<String>.from(data['splitWithEmails'] ?? []),
     );
   }
 
@@ -197,6 +206,84 @@ class Ticket {
       'seatNumbers': seatNumbers,
       'totalAmount': totalAmount,
       'isActive': isActive,
+      'status': status,
+      'isSplitPayment': isSplitPayment,
+      'splitWithEmails': splitWithEmails,
     };
+  }
+}
+
+class Payment {
+  final String id;
+  final String ticketId;
+  final String userId;
+  final double amount;
+  final String status;
+  final String encryptedCardData;
+  final DateTime timestamp;
+
+  Payment({
+    required this.id,
+    required this.ticketId,
+    required this.userId,
+    required this.amount,
+    required this.status,
+    required this.encryptedCardData,
+    required this.timestamp,
+  });
+
+  factory Payment.fromFirestore(DocumentSnapshot doc) {
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    return Payment.fromMap(doc.id, data);
+  }
+
+  factory Payment.fromMap(String docId, Map<String, dynamic> data) {
+    return Payment(
+      id: docId,
+      ticketId: data['ticketId'] ?? '',
+      userId: data['userId'] ?? '',
+      amount: (data['amount'] ?? 0.0).toDouble(),
+      status: data['status'] ?? 'Pending',
+      encryptedCardData: data['encryptedCardData'] ?? '',
+      timestamp: (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'ticketId': ticketId,
+      'userId': userId,
+      'amount': amount,
+      'status': status,
+      'encryptedCardData': encryptedCardData,
+      'timestamp': Timestamp.fromDate(timestamp),
+    };
+  }
+}
+
+class UserProfile {
+  final String id;
+  final String fullName;
+  final String email;
+  final String phone;
+  final DateTime createdAt;
+
+  UserProfile({
+    required this.id,
+    required this.fullName,
+    required this.email,
+    required this.phone,
+    required this.createdAt,
+  });
+
+  factory UserProfile.fromFirestore(DocumentSnapshot doc) {
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    return UserProfile(
+      id: doc.id,
+      fullName: data['fullName'] ?? '',
+      email: data['email'] ?? '',
+      phone: data['phone'] ?? '',
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+    );
   }
 }
