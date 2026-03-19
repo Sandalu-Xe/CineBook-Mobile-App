@@ -37,6 +37,14 @@ class HomeScreen extends StatelessWidget {
         title: const Text('CineBook'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.download),
+            onPressed: () async {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Re-seeding Cinemas...')));
+              await SeedService().seedDatabase();
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cinemas Re-seeded!')));
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.map_outlined),
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) => const CinemaMapScreen()));

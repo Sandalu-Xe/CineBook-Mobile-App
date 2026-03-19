@@ -48,27 +48,87 @@ class SeedService {
       ),
     ];
 
-    final cinema = Cinema(
-      id: 'cin1',
-      name: 'PVR Cinemas',
-      location: 'One Galle Face Mall',
-      distanceKm: 2.5,
-      latitude: 6.9271,
-      longitude: 79.8436,
-      showtimes: [
-        Showtime(id: 's1', time: '10:00 AM', format: '2D', price: 1000, availableSeats: 50, isFillingFast: false),
-        Showtime(id: 's2', time: '01:30 PM', format: '3D', price: 1500, availableSeats: 12, isFillingFast: true),
-        Showtime(id: 's3', time: '06:00 PM', format: 'IMAX', price: 2000, availableSeats: 5, isFillingFast: true),
-      ],
-    );
+    final cinemas = [
+      Cinema(
+        id: 'cin1',
+        name: 'PVR Cinemas',
+        location: 'One Galle Face Mall',
+        distanceKm: 2.5,
+        latitude: 6.9271,
+        longitude: 79.8436,
+        showtimes: [
+          Showtime(id: 's1', time: '10:00 AM', format: '2D', price: 1000, availableSeats: 50, isFillingFast: false),
+          Showtime(id: 's2', time: '01:30 PM', format: '3D', price: 1500, availableSeats: 12, isFillingFast: true),
+        ],
+      ),
+      Cinema(
+        id: 'cin2',
+        name: 'Liberty Cinema',
+        location: 'Colombo 03',
+        distanceKm: 4.1,
+        latitude: 6.9099,
+        longitude: 79.8510,
+        showtimes: [
+          Showtime(id: 's3', time: '11:15 AM', format: '2D', price: 800, availableSeats: 100, isFillingFast: false),
+          Showtime(id: 's4', time: '04:00 PM', format: '2D', price: 800, availableSeats: 45, isFillingFast: false),
+        ],
+      ),
+      Cinema(
+        id: 'cin3',
+        name: 'Scope Cinemas - CCC',
+        location: 'Colombo City Centre',
+        distanceKm: 3.2,
+        latitude: 6.9150,
+        longitude: 79.8580,
+        showtimes: [
+          Showtime(id: 's5', time: '09:00 AM', format: 'IMAX', price: 2000, availableSeats: 5, isFillingFast: true),
+        ],
+      ),
+      Cinema(
+        id: 'cin4',
+        name: 'Majestic Cineplex',
+        location: 'Majestic City, Colombo 04',
+        distanceKm: 5.5,
+        latitude: 6.8939,
+        longitude: 79.8547,
+        showtimes: [
+          Showtime(id: 's6', time: '10:30 AM', format: '2D', price: 900, availableSeats: 25, isFillingFast: false),
+          Showtime(id: 's7', time: '06:00 PM', format: '3D', price: 1200, availableSeats: 8, isFillingFast: true),
+        ],
+      ),
+      Cinema(
+        id: 'cin5',
+        name: 'Savoy 3D Cinema',
+        location: 'Wellawatte, Colombo 06',
+        distanceKm: 7.0,
+        latitude: 6.8741,
+        longitude: 79.8596,
+        showtimes: [
+          Showtime(id: 's8', time: '12:00 PM', format: '3D', price: 1000, availableSeats: 80, isFillingFast: false),
+        ],
+      ),
+      Cinema(
+        id: 'cin6',
+        name: 'Regal Cinema',
+        location: 'Fort, Colombo 01',
+        distanceKm: 1.2,
+        latitude: 6.9304,
+        longitude: 79.8450,
+        showtimes: [
+          Showtime(id: 's9', time: '03:30 PM', format: '2D', price: 800, availableSeats: 40, isFillingFast: false),
+        ],
+      ),
+    ];
 
     // Write movies
     for (var movie in movies) {
       await _db.collection('movies').doc(movie.id).set(movie.toMap());
     }
 
-    // Write cinema
-    await _db.collection('cinemas').doc(cinema.id).set(cinema.toMap());
+    // Write cinemas
+    for (var cinema in cinemas) {
+      await _db.collection('cinemas').doc(cinema.id).set(cinema.toMap());
+    }
 
     print('Database successfully seeded!');
   }

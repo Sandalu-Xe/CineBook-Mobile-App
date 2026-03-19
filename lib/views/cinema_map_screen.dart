@@ -5,7 +5,8 @@ import '../services/database_service.dart';
 import '../core/app_colors.dart';
 
 class CinemaMapScreen extends StatefulWidget {
-  const CinemaMapScreen({Key? key}) : super(key: key);
+  final Cinema? targetCinema;
+  const CinemaMapScreen({Key? key, this.targetCinema}) : super(key: key);
 
   @override
   State<CinemaMapScreen> createState() => _CinemaMapScreenState();
@@ -15,8 +16,18 @@ class _CinemaMapScreenState extends State<CinemaMapScreen> {
   final DatabaseService _db = DatabaseService();
   late GoogleMapController mapController;
   
-  // Center roughly around Colombo
-  final LatLng _colomboCenter = const LatLng(6.9271, 79.8612);
+  // Center roughly around Colombo, or the target cinema if provided!
+  late LatLng _colomboCenter;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.targetCinema != null) {
+      _colomboCenter = LatLng(widget.targetCinema!.latitude, widget.targetCinema!.longitude);
+    } else {
+      _colomboCenter = const LatLng(6.9271, 79.8612);
+    }
+  }
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
@@ -42,16 +53,30 @@ class _CinemaMapScreenState extends State<CinemaMapScreen> {
 
           final cinemas = snapshot.data ?? [];
           
+          // Predefined distinct colors for mapping
+          final List<double> markerHues = [
+            BitmapDescriptor.hueViolet,
+            BitmapDescriptor.hueRed,
+            BitmapDescriptor.hueBlue,
+            BitmapDescriptor.hueGreen,
+            BitmapDescriptor.hueOrange,
+            BitmapDescriptor.hueRose,
+            BitmapDescriptor.hueCyan,
+          ];
+
           // Generate Map Markers
+          int idx = 0;
           final Set<Marker> markers = cinemas.map((cinema) {
+            final hue = markerHues[idx % markerHues.length];
+            idx++;
             return Marker(
               markerId: MarkerId(cinema.id),
               position: LatLng(cinema.latitude, cinema.longitude),
               infoWindow: InfoWindow(
                 title: cinema.name,
-                snippet: cinema.location,
+                snippet: '${cinema.location} • ${cinema.distanceKm}km away',
               ),
-              icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
+              icon: BitmapDescriptor.defaultMarkerWithHue(hue),
             );
           }).toSet();
 
@@ -59,7 +84,7 @@ class _CinemaMapScreenState extends State<CinemaMapScreen> {
             onMapCreated: _onMapCreated,
             initialCameraPosition: CameraPosition(
               target: _colomboCenter,
-              zoom: 12.0,
+              zoom: widget.targetCinema != null ? 15.0 : 12.0, // Zoom closer if target is provided
             ),
             markers: markers,
             myLocationEnabled: true,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../core/app_colors.dart';
 import '../models/core_models.dart';
+import 'cinema_map_screen.dart';
 
 class CinemaSelectorScreen extends StatelessWidget {
   final String movieId;
@@ -77,7 +78,9 @@ class CinemaSelectorScreen extends StatelessWidget {
                   ],
                 ),
                 TextButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const CinemaMapScreen()));
+                  },
                   icon: const Icon(Icons.near_me, size: 16),
                   label: const Text('Near me'),
                 )
@@ -140,7 +143,19 @@ class CinemaSelectorScreen extends StatelessWidget {
                     children: [
                       Text(cinema.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 4),
-                      Text(cinema.location, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                      InkWell(
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => CinemaMapScreen(targetCinema: cinema)));
+                        },
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.map, size: 14, color: AppColors.primary),
+                            const SizedBox(width: 4),
+                            Expanded(child: Text(cinema.location, style: const TextStyle(color: AppColors.primary, fontSize: 13, decoration: TextDecoration.underline))),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -183,7 +198,7 @@ class CinemaSelectorScreen extends StatelessWidget {
         context.push('/seat-selection', extra: showtime);
       },
       child: Container(
-        width: 100,
+        width: 120, // Increased from 100 to fix layout overflow
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           border: Border.all(color: Colors.grey.shade300),
