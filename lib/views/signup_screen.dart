@@ -136,10 +136,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       final success = await authViewModel.signUp(
                         _nameController.text.trim(),
                         _emailController.text.trim(), 
-                        _passwordController.text.trim()
+                        _passwordController.text.trim(),
+                        _phoneController.text.trim()
                       );
                       if (success && mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Account created successfully!'), backgroundColor: Colors.green),
+                        );
                         context.go('/home');
+                      } else if (!success && mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Account creation failed: ${authViewModel.errorMessage ?? "Error occurred"}.'), backgroundColor: Colors.red),
+                        );
                       }
                   },
                 child: authViewModel.isLoading 

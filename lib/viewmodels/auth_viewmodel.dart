@@ -29,10 +29,10 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> signUp(String fullName, String email, String password) async {
+  Future<bool> signUp(String fullName, String email, String password, String phone) async {
     _setLoading(true);
     try {
-      await _authService.signUp(email, password, fullName);
+      await _authService.signUp(email, password, fullName, phone);
       _setLoading(false);
       return true;
     } on FirebaseAuthException catch (e) {

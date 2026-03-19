@@ -12,6 +12,7 @@ class TicketsScreen extends StatelessWidget {
     final List<Ticket> tickets = [
       Ticket(
         id: 'CB2026031701',
+        userId: 'mock_user',
         movie: Movie(id: '1', title: 'Velocity Strike', genre: '', duration: '', rating: 0, posterUrl: '', synopsis: '', isNowShowing: true),
         cinema: Cinema(id: 'c1', name: 'Liberty Cinema', location: '', distanceKm: 0, showtimes: []),
         showtime: Showtime(id: 's1', time: '07:15 PM', format: '3D', price: 1200, availableSeats: 0),
@@ -22,6 +23,7 @@ class TicketsScreen extends StatelessWidget {
       ),
       Ticket(
         id: 'CB2026031702',
+        userId: 'mock_user',
         movie: Movie(id: '2', title: 'The Perfect Alibi', genre: '', duration: '', rating: 0, posterUrl: '', synopsis: '', isNowShowing: true),
         cinema: Cinema(id: 'c2', name: 'Scope Cinemas', location: '', distanceKm: 0, showtimes: []),
         showtime: Showtime(id: 's2', time: '02:15 PM', format: '2D', price: 900, availableSeats: 0),

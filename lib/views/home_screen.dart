@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../core/app_colors.dart';
 import '../viewmodels/home_viewmodel.dart';
 import '../models/core_models.dart';
+import '../services/seed_service.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -12,6 +13,25 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Seeding database... Please wait.')),
+          );
+          try {
+            await SeedService().seedDatabase();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Database seeded! Pull to refresh or wait a second.'), backgroundColor: Colors.green),
+            );
+          } catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Database seeding failed! Please ensure Firestore is created.'), backgroundColor: Colors.red),
+            );
+          }
+        },
+        child: const Icon(Icons.download),
+        backgroundColor: AppColors.primary,
+      ),
       appBar: AppBar(
         title: const Text('CineBook'),
         actions: [

@@ -112,7 +112,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         _passwordController.text.trim()
                       );
                       if (success && mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Login successful!'), backgroundColor: Colors.green),
+                        );
                         context.go('/home');
+                      } else if (!success && mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Login failed: ${authViewModel.errorMessage ?? "Invalid credentials"}.'), backgroundColor: Colors.red),
+                        );
                       }
                   },
                 child: authViewModel.isLoading 

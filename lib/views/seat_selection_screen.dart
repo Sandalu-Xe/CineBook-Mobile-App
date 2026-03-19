@@ -255,9 +255,22 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
               
               // Pay Now
               ElevatedButton.icon(
-                onPressed: () {
+                onPressed: () async {
                   Navigator.pop(context);
-                  context.push('/tickets');
+                  try {
+                    // Simulated Delay / Booking
+                    await Future.delayed(const Duration(seconds: 1));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Ticket successfully booked!'), backgroundColor: Colors.green),
+                    );
+                    if (context.mounted) {
+                      context.push('/tickets');
+                    }
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Ticket booking failed!'), backgroundColor: Colors.red),
+                    );
+                  }
                 },
                 icon: const Icon(Icons.payment, color: Colors.white),
                 label: const Text('Pay Full Amount', style: TextStyle(color: Colors.white)),
