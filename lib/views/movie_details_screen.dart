@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../core/app_colors.dart';
 import '../viewmodels/home_viewmodel.dart';
 import '../models/core_models.dart';
+import 'trailer_screen.dart';
 
 class MovieDetailsScreen extends StatelessWidget {
   final String id;
@@ -52,19 +53,38 @@ class MovieDetailsScreen extends StatelessWidget {
                     ),
                   ),
                   Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: AppColors.secondary,
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Icon(Icons.play_arrow, color: Colors.black),
-                          SizedBox(width: 8),
-                          Text('Watch Trailer', style: TextStyle(fontWeight: FontWeight.bold)),
-                        ],
+                    child: GestureDetector(
+                      onTap: () {
+                        if (movie.trailerUrl.isNotEmpty) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => TrailerScreen(
+                                videoId: movie.trailerUrl,
+                                movieTitle: movie.title,
+                              ),
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('No trailer available for this movie.')),
+                          );
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppColors.secondary,
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Icon(Icons.play_arrow, color: Colors.black),
+                            SizedBox(width: 8),
+                            Text('Watch Trailer', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ],
+                        ),
                       ),
                     ),
                   ),

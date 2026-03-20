@@ -15,6 +15,7 @@ class SeedService {
         posterUrl: 'assets/images/velocity.png',
         synopsis: 'When a former special ops agent discovers a conspiracy...',
         isNowShowing: true,
+        trailerUrl: 'dQw4w9WgXcQ', // Replace with actual trailer YouTube ID
       ),
       Movie(
         id: '2',
@@ -25,6 +26,7 @@ class SeedService {
         posterUrl: 'assets/images/last.png',
         synopsis: 'A detective is forced to confront his past...',
         isNowShowing: true,
+        trailerUrl: 'dQw4w9WgXcQ', // Replace with actual trailer YouTube ID
       ),
       Movie(
         id: '3',
@@ -35,6 +37,7 @@ class SeedService {
         posterUrl: 'assets/images/ted.png',
         synopsis: 'Newlywed couple Ted and Tami-Lynn want to have a baby...',
         isNowShowing: true,
+        trailerUrl: 'xjDjITE2vbd', // Ted 2 official trailer
       ),
       Movie(
         id: '4',
@@ -45,6 +48,7 @@ class SeedService {
         posterUrl: 'assets/images/upcoming.png',
         synopsis: 'An epic journey to the stars...',
         isNowShowing: false,
+        trailerUrl: 'dQw4w9WgXcQ', // Replace with actual trailer YouTube ID
       ),
     ];
 

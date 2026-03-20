@@ -9,6 +9,7 @@ class Movie {
   final String posterUrl;
   final String synopsis;
   final bool isNowShowing;
+  final String trailerUrl; // YouTube video ID
 
   Movie({
     required this.id,
@@ -19,6 +20,7 @@ class Movie {
     required this.posterUrl,
     required this.synopsis,
     required this.isNowShowing,
+    this.trailerUrl = '',
   });
 
   factory Movie.fromFirestore(DocumentSnapshot doc) {
@@ -36,6 +38,7 @@ class Movie {
       posterUrl: data['posterUrl'] ?? '',
       synopsis: data['synopsis'] ?? '',
       isNowShowing: data['isNowShowing'] ?? false,
+      trailerUrl: data['trailerUrl'] ?? '',
     );
   }
 
@@ -48,6 +51,7 @@ class Movie {
       'posterUrl': posterUrl,
       'synopsis': synopsis,
       'isNowShowing': isNowShowing,
+      'trailerUrl': trailerUrl,
     };
   }
 }
