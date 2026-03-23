@@ -11,6 +11,7 @@ import '../views/tickets_screen.dart';
 import '../views/ticket_details_screen.dart';
 import '../views/payment_screen.dart';
 import '../views/profile_screen.dart';
+import '../views/ar_view_screen.dart';
 import '../models/core_models.dart';
 
 class AppRoutes {
@@ -81,6 +82,13 @@ class AppRoutes {
       GoRoute(
         path: '/profile',
         builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: '/ar-view',
+        builder: (context, state) {
+          final data = state.extra as Map<String, dynamic>?;
+          return ArViewScreen(selectedSeat: data?['selectedSeat'] ?? 'D3');
+        },
       ),
     ],
   );
