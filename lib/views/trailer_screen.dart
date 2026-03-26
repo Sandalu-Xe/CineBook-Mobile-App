@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-import '../core/app_colors.dart';
 
 class TrailerScreen extends StatefulWidget {
   final String videoId;
@@ -54,17 +53,17 @@ class _TrailerScreenState extends State<TrailerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
     return YoutubePlayerBuilder(
-      onExitFullScreen: () {
-        // Ensure orientation reset after full screen
-      },
+      onExitFullScreen: () {},
       player: YoutubePlayer(
         controller: _controller,
         showVideoProgressIndicator: true,
-        progressIndicatorColor: AppColors.secondary,
-        progressColors: const ProgressBarColors(
-          playedColor: AppColors.secondary,
-          handleColor: AppColors.secondary,
+        progressIndicatorColor: colorScheme.primary,
+        progressColors: ProgressBarColors(
+          playedColor: colorScheme.primary,
+          handleColor: colorScheme.primaryContainer,
         ),
         onReady: () {
           setState(() => _isPlayerReady = true);

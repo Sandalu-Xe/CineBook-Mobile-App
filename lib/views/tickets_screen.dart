@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../core/app_colors.dart';
 import '../models/core_models.dart';
 import '../services/database_service.dart';
+import 'custom_navigation_bar.dart';
 
 class TicketsScreen extends StatefulWidget {
   const TicketsScreen({Key? key}) : super(key: key);
@@ -17,35 +17,32 @@ class _TicketsScreenState extends State<TicketsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Dynamically pull currently authenticated User ID
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
       return Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).colorScheme.background,
         appBar: AppBar(
-          title: const Text('My Tickets', style: TextStyle(fontSize: 18, color: AppColors.textPrimary)),
-          backgroundColor: AppColors.background,
-          elevation: 0,
+          title: const Text('My Tickets'),
         ),
-        body: const Center(
-          child: Text('Please log in to view your tickets.', style: TextStyle(fontSize: 16)),
+        bottomNavigationBar: const CustomNavigationBar(selectedIndex: 1),
+        body: Center(
+          child: Text('Please log in to view your tickets.', style: Theme.of(context).textTheme.bodyLarge),
         ),
       );
     }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).colorScheme.background,
+      bottomNavigationBar: const CustomNavigationBar(selectedIndex: 1),
       appBar: AppBar(
         title: Column(
-          children: const [
-            Text('My Tickets', style: TextStyle(fontSize: 18, color: AppColors.textPrimary)),
-            Text('Your booking history', style: TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: AppColors.textSecondary)),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('My Tickets'),
+            Text('Your booking history', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
           ],
         ),
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
       ),
       body: StreamBuilder<List<Ticket>>(
         stream: DatabaseService().getUserTicketsStream(user.uid),
@@ -54,12 +51,10 @@ class _TicketsScreenState extends State<TicketsScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Error loading tickets: ${snapshot.error}', style: const TextStyle(color: Colors.red)));
+            return Center(child: Text('Error loading tickets: ${snapshot.error}', style: TextStyle(color: Theme.of(context).colorScheme.error)));
           }
 
           final tickets = snapshot.data ?? [];
-          
-          // Split tickets into "History" vs "Upcoming" dynamically
           final now = DateTime.now().subtract(const Duration(hours: 3));
           final activeTickets = tickets.where((t) => t.date.isAfter(now)).toList();
           final pastTickets = tickets.where((t) => t.date.isBefore(now)).toList();
@@ -68,53 +63,20 @@ class _TicketsScreenState extends State<TicketsScreen> {
 
           return Column(
             children: [
-              Container(
-                color: AppColors.primary,
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() => _showActive = true),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          decoration: BoxDecoration(
-                            color: _showActive ? Colors.white : Colors.transparent, 
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Center(
-                            child: Text('Active (${activeTickets.length})', 
-                              style: TextStyle(
-                                color: _showActive ? AppColors.primary : Colors.white, 
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() => _showActive = false),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          decoration: BoxDecoration(
-                            color: !_showActive ? Colors.white : Colors.transparent, 
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Center(
-                            child: Text('Past (${pastTickets.length})', 
-                              style: TextStyle(
-                                color: !_showActive ? AppColors.primary : Colors.white, 
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: SegmentedButton<bool>(
+                    segments: [
+                      ButtonSegment<bool>(value: true, label: Text('Active (${activeTickets.length})')),
+                      ButtonSegment<bool>(value: false, label: Text('Past (${pastTickets.length})')),
+                    ],
+                    selected: {_showActive},
+                    onSelectionChanged: (Set<bool> newSelection) {
+                      setState(() => _showActive = newSelection.first);
+                    },
+                  ),
                 ),
               ),
               Expanded(
@@ -122,7 +84,7 @@ class _TicketsScreenState extends State<TicketsScreen> {
                   ? Center(
                       child: Text(
                         _showActive ? 'No active tickets found. Book a movie now!' : 'No past booking history found.',
-                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 16),
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
                     )
                   : ListView.builder(
@@ -141,19 +103,22 @@ class _TicketsScreenState extends State<TicketsScreen> {
   }
 
   Widget _buildTicketCard(BuildContext context, Ticket ticket) {
-    return GestureDetector(
-      onTap: () {
-        context.push('/ticket-details', extra: ticket);
-      },
-      child: Card(
-        margin: const EdgeInsets.only(bottom: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        clipBehavior: Clip.antiAlias,
+    final isPending = ticket.status == 'Pending Split Payment';
+    final statusColor = isPending ? Colors.orange : Theme.of(context).colorScheme.secondary;
+    final statusOnColor = isPending ? Colors.black : Theme.of(context).colorScheme.onSecondary;
+
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.only(bottom: 16),
+      child: InkWell(
+        onTap: () {
+          context.push('/ticket-details', extra: ticket);
+        },
         child: Column(
           children: [
             Container(
               padding: const EdgeInsets.all(16),
-              color: AppColors.primary,
+              color: Theme.of(context).colorScheme.primaryContainer,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -161,31 +126,30 @@ class _TicketsScreenState extends State<TicketsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(ticket.movie.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                        Text(ticket.movie.title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onPrimaryContainer)),
                         const SizedBox(height: 4),
-                        Text('${ticket.cinema.name} - Hall 1', style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                        Text('${ticket.cinema.name} - Hall 1', style: TextStyle(color: Theme.of(context).colorScheme.onPrimaryContainer.withOpacity(0.8), fontSize: 13)),
                       ],
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: ticket.status == 'Pending Split Payment' ? Colors.orange : AppColors.secondary,
-                      borderRadius: BorderRadius.circular(8),
+                      color: statusColor,
+                      borderRadius: BorderRadius.circular(24),
                     ),
                     child: Row(
                       children: [
-                        Icon(ticket.status == 'Pending Split Payment' ? Icons.hourglass_top : Icons.qr_code, size: 14, color: Colors.black),
-                        const SizedBox(width: 4),
-                        Text(ticket.status == 'Pending Split Payment' ? 'Pending' : 'Ready', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black)),
+                        Icon(isPending ? Icons.hourglass_top : Icons.qr_code, size: 16, color: statusOnColor),
+                        const SizedBox(width: 6),
+                        Text(isPending ? 'Pending' : 'Ready', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: statusOnColor)),
                       ],
                     ),
                   ),
                 ],
               ),
             ),
-            Container(
-              color: AppColors.cardColor,
+            Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
@@ -194,26 +158,26 @@ class _TicketsScreenState extends State<TicketsScreen> {
                     children: [
                       Row(
                         children: [
-                           Icon(Icons.calendar_today, size: 14, color: AppColors.textSecondary),
-                          const SizedBox(width: 4),
+                          Icon(Icons.calendar_today, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                          const SizedBox(width: 8),
                           Text(
                             '${ticket.date.year}-${ticket.date.month.toString().padLeft(2, '0')}-${ticket.date.day.toString().padLeft(2, '0')}', 
-                            style: const TextStyle(color: AppColors.textSecondary)
+                            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500)
                           ),
                         ],
                       ),
                       Row(
                         children: [
-                          Icon(Icons.access_time, size: 14, color: AppColors.textSecondary),
-                          const SizedBox(width: 4),
-                          Text(ticket.showtime.time, style: const TextStyle(color: AppColors.textSecondary)),
+                          Icon(Icons.access_time, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                          const SizedBox(width: 8),
+                          Text(ticket.showtime.time, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500)),
                         ],
                       ),
                     ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12.0),
-                    child: Divider(color: Colors.grey.shade300),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16.0),
+                    child: Divider(height: 1),
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -221,16 +185,17 @@ class _TicketsScreenState extends State<TicketsScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Seats', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: ticket.seatNumbers.map((seat) => Padding(
-                              padding: const EdgeInsets.only(right: 8.0),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(4)),
-                                child: Text(seat, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textPrimary)),
+                          Text('Seats', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            children: ticket.seatNumbers.map((seat) => Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.surfaceVariant,
+                                borderRadius: BorderRadius.circular(6)
                               ),
+                              child: Text(seat, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                             )).toList(),
                           ),
                         ],
@@ -238,22 +203,10 @@ class _TicketsScreenState extends State<TicketsScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          const Text('Total', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                          const SizedBox(height: 4),
-                          Text('LKR ${ticket.totalAmount.toInt()}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
+                          Text('Total', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                          const SizedBox(height: 8),
+                          Text('LKR ${ticket.totalAmount.toInt()}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).colorScheme.primary)),
                         ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Ref: ${ticket.id.substring(0, 15)}...', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(4)),
-                        child: Text(ticket.showtime.format, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                       ),
                     ],
                   ),

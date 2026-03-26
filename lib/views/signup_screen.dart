@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import '../core/app_colors.dart';
 import '../viewmodels/auth_viewmodel.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -16,6 +15,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _agreeTerms = false;
 
   @override
   Widget build(BuildContext context) {
@@ -24,137 +24,144 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (authViewModel.errorMessage != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(authViewModel.errorMessage!), backgroundColor: AppColors.error),
+          SnackBar(content: Text(authViewModel.errorMessage!), backgroundColor: Theme.of(context).colorScheme.error),
         );
         authViewModel.clearError();
       });
     }
 
     return Scaffold(
-      backgroundColor: AppColors.primary,
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
         title: const Text('CineBook'),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
       ),
-      body: Container(
-        margin: const EdgeInsets.only(top: 24),
-        decoration: const BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(32),
-            topRight: Radius.circular(32),
-          ),
-        ),
+      body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 16),
-              
-              // Custom Login / Sign Up Tab Mock
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  GestureDetector(
-                    onTap: () => context.pushReplacement('/login'),
-                    child: Text('Login', style: TextStyle(fontWeight: FontWeight.normal, color: AppColors.textSecondary, fontSize: 18)),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.person_add_alt_1, size: 64, color: Theme.of(context).colorScheme.primary),
+                const SizedBox(height: 24),
+                Text(
+                  'Create Account',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Sign up to book tickets together',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 48),
+                TextField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Full Name',
+                    hintText: 'John Doe',
+                    prefixIcon: Icon(Icons.person_outline),
                   ),
-                  const SizedBox(width: 32),
-                  Text('Sign Up', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontSize: 18)),
-                ],
-              ),
-              const SizedBox(height: 48),
-
-              TextField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Full Name',
-                  hintText: 'John Doe',
-                  prefixIcon: Icon(Icons.person_outline),
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  hintText: 'you@example.com',
-                  prefixIcon: Icon(Icons.email_outlined),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                    hintText: 'you@example.com',
+                    prefixIcon: Icon(Icons.email_outlined),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(
-                  labelText: 'Phone Number',
-                  hintText: '+94 77 123 4567',
-                  prefixIcon: Icon(Icons.phone_outlined),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(
+                    labelText: 'Phone Number',
+                    hintText: '+94 77 123 4567',
+                    prefixIcon: Icon(Icons.phone_outlined),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
-                  prefixIcon: Icon(Icons.lock_outline),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: Icon(Icons.lock_outline),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Checkbox(value: false, onChanged: (v){}),
-                  Expanded(
-                    child: RichText(
-                      text: const TextSpan(
-                        style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                        children: [
-                          TextSpan(text: 'I agree to the '),
-                          TextSpan(text: 'Terms of Service', style: TextStyle(color: AppColors.primary)),
-                          TextSpan(text: ' and '),
-                          TextSpan(text: 'Privacy Policy', style: TextStyle(color: AppColors.primary)),
-                        ],
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _agreeTerms, 
+                      onChanged: (v) => setState(() => _agreeTerms = v ?? false)
+                    ),
+                    Expanded(
+                      child: RichText(
+                        text: TextSpan(
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13),
+                          children: [
+                            const TextSpan(text: 'I agree to the '),
+                            TextSpan(text: 'Terms of Service', style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold)),
+                            const TextSpan(text: ' and '),
+                            TextSpan(text: 'Privacy Policy', style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              
-              ElevatedButton(
-                onPressed: authViewModel.isLoading 
-                  ? null 
-                  : () async {
-                      if (_emailController.text.isEmpty || _passwordController.text.isEmpty || _nameController.text.isEmpty) {
-                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all required fields')));
-                         return;
-                      }
-                      final success = await authViewModel.signUp(
-                        _nameController.text.trim(),
-                        _emailController.text.trim(), 
-                        _passwordController.text.trim(),
-                        _phoneController.text.trim()
-                      );
-                      if (success && mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Account created successfully!'), backgroundColor: Colors.green),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                FilledButton(
+                  onPressed: authViewModel.isLoading 
+                    ? null 
+                    : () async {
+                        if (_emailController.text.isEmpty || _passwordController.text.isEmpty || _nameController.text.isEmpty) {
+                           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all required fields')));
+                           return;
+                        }
+                        if (!_agreeTerms) {
+                           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please agree to the Terms of Service')));
+                           return;
+                        }
+                        final success = await authViewModel.signUp(
+                          _nameController.text.trim(),
+                          _emailController.text.trim(), 
+                          _passwordController.text.trim(),
+                          _phoneController.text.trim()
                         );
-                        context.go('/home');
-                      } else if (!success && mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Account creation failed: ${authViewModel.errorMessage ?? "Error occurred"}.'), backgroundColor: Colors.red),
-                        );
-                      }
-                  },
-                child: authViewModel.isLoading 
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Text('Create Account'),
-              ),
-            ],
+                        if (success && mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Account created successfully!'), backgroundColor: Colors.green),
+                          );
+                          context.go('/home');
+                        }
+                    },
+                  style: FilledButton.styleFrom(minimumSize: const Size(double.infinity, 56)),
+                  child: authViewModel.isLoading 
+                      ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3))
+                      : const Text('Create Account', style: TextStyle(fontSize: 16)),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text("Already have an account?", style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                    TextButton(
+                      onPressed: () => context.pushReplacement('/login'),
+                      child: const Text('Login', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
           ),
         ),
       ),

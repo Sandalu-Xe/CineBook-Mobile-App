@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import '../core/app_colors.dart';
 import '../models/core_models.dart';
 
 class TicketDetailsScreen extends StatelessWidget {
@@ -9,13 +8,15 @@ class TicketDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colorScheme.background,
       appBar: AppBar(
         title: Column(
           children: [
             const Text('Ticket Details', style: TextStyle(fontSize: 18)),
-            Text(ticket.id, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: Colors.white70)),
+            Text(ticket.id, style: TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: colorScheme.onSurfaceVariant)),
           ],
         ),
       ),
@@ -54,7 +55,8 @@ class TicketDetailsScreen extends StatelessWidget {
               ),
             // QR Code Card
             Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              elevation: 0,
+              color: colorScheme.surfaceVariant,
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: Column(
@@ -62,13 +64,14 @@ class TicketDetailsScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.primary, width: 2),
+                        color: Colors.white,
+                        border: Border.all(color: colorScheme.primaryContainer, width: 2),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: ticket.isSplitPayment 
-                        ? const Padding(
-                            padding: EdgeInsets.all(60.0),
-                            child: Icon(Icons.lock_outline, size: 80, color: AppColors.primary),
+                        ? Padding(
+                            padding: const EdgeInsets.all(60.0),
+                            child: Icon(Icons.lock_outline, size: 80, color: colorScheme.primary),
                           )
                         : QrImageView(
                             data: ticket.id,
@@ -77,9 +80,9 @@ class TicketDetailsScreen extends StatelessWidget {
                           )
                     ),
                     const SizedBox(height: 16),
-                    Text(ticket.isSplitPayment ? 'Ticket Locked' : 'Scan at entrance', style: const TextStyle(color: AppColors.textSecondary)),
+                    Text(ticket.isSplitPayment ? 'Ticket Locked' : 'Scan at entrance', style: TextStyle(color: colorScheme.onSurfaceVariant)),
                     const SizedBox(height: 4),
-                    Text('Booking Ref: ${ticket.id}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    Text('Booking Ref: ${ticket.id}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: colorScheme.onSurface)),
                   ],
                 ),
               ),
@@ -88,20 +91,21 @@ class TicketDetailsScreen extends StatelessWidget {
             
             // Movie Details Card
             Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              elevation: 0,
+              color: colorScheme.surfaceVariant,
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(ticket.movie.title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    Text(ticket.movie.title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 16),
-                    _buildDetailRow(Icons.location_on_outlined, 'Cinema', '${ticket.cinema.name} - Hall 1'),
+                    _buildDetailRow(Icons.location_on_outlined, 'Cinema', '${ticket.cinema.name} - Hall 1', colorScheme),
                     const SizedBox(height: 16),
-                    _buildDetailRow(Icons.calendar_today_outlined, 'Date & Time', 'Today, ${ticket.showtime.time}'),
+                    _buildDetailRow(Icons.calendar_today_outlined, 'Date & Time', 'Today, ${ticket.showtime.time}', colorScheme),
                     const SizedBox(height: 16),
                     _buildDetailRow(Icons.event_seat_outlined, 'Format & Seats',
-                        '${ticket.showtime.format} | ${ticket.seatNumbers.join(", ")}'),
+                        '${ticket.showtime.format} | ${ticket.seatNumbers.join(", ")}', colorScheme),
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 16.0),
                       child: Divider(),
@@ -109,8 +113,8 @@ class TicketDetailsScreen extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Total Amount', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                        Text('LKR ${ticket.totalAmount.toInt()}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                        Text('Total Amount', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: colorScheme.onSurface)),
+                        Text('LKR ${ticket.totalAmount.toInt()}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.primary)),
                       ],
                     ),
                   ],
@@ -121,19 +125,20 @@ class TicketDetailsScreen extends StatelessWidget {
             const SizedBox(height: 16),
             // Additional Information
             Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              elevation: 0,
+              color: colorScheme.surfaceVariant,
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Additional Information', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    Text('Additional Information', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 16),
-                    _buildInfoRow('Language', 'English'),
+                    _buildInfoRow('Language', 'English', colorScheme),
                     const SizedBox(height: 12),
-                    _buildInfoRow('Format', '2D, 3D, IMAX'),
+                    _buildInfoRow('Format', '2D, 3D, IMAX', colorScheme),
                     const SizedBox(height: 12),
-                    _buildInfoRow('Rating', 'PG-13'),
+                    _buildInfoRow('Rating', 'PG-13', colorScheme),
                   ],
                 ),
               ),
@@ -144,19 +149,19 @@ class TicketDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(IconData icon, String label, String value) {
+  Widget _buildDetailRow(IconData icon, String label, String value, ColorScheme colorScheme) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: AppColors.textSecondary),
+        Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              Text(label, style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
               const SizedBox(height: 4),
-              Text(value, style: const TextStyle(fontWeight: FontWeight.w500)),
+              Text(value, style: TextStyle(fontWeight: FontWeight.w500, color: colorScheme.onSurface)),
             ],
           ),
         ),
@@ -164,12 +169,12 @@ class TicketDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(String label, String value, ColorScheme colorScheme) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(color: AppColors.textSecondary)),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.w500)),
+        Text(label, style: TextStyle(color: colorScheme.onSurfaceVariant)),
+        Text(value, style: TextStyle(fontWeight: FontWeight.w500, color: colorScheme.onSurface)),
       ],
     );
   }

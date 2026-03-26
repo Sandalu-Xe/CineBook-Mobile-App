@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../core/app_colors.dart';
 import '../models/core_models.dart';
 import '../services/database_service.dart';
 import '../services/payment_gateway_service.dart';
@@ -29,7 +28,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
   @override
   void initState() {
     super.initState();
-    // Add real-time listeners for dynamic Virtual Card rendering
     _cardNumberController.addListener(() {
       setState(() {
         _displayCardNumber = _cardNumberController.text.isNotEmpty 
@@ -65,7 +63,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<void> _processFinalPayment() async {
-    // 1. Strict Form Validation checks before networking
     if (!_formKey.currentState!.validate()) {
       return; 
     }
@@ -107,7 +104,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
         splitWithEmails: isSplitPayment ? [splitEmail] : [],
       );
 
-      // 2. Process secure transaction through Mock Payment Gateway
       final paymentService = PaymentGatewayService();
       await paymentService.processPayment(
         ticketId: ticketRef.id,
@@ -119,11 +115,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
         amount: totalPrice.toDouble(),
       );
 
-      // 3. Insert ticket into Firebase database only on bank success!
       await DatabaseService().bookTicket(ticket);
 
       if (mounted) {
-        Navigator.pop(context); // remove loading dialog
+        Navigator.pop(context); 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(isSplitPayment
@@ -136,9 +131,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
       }
     } catch (e) {
       if (mounted) {
-        Navigator.pop(context); // remove loading dialog
+        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Bank Declined: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Bank Declined: $e'), backgroundColor: Theme.of(context).colorScheme.error),
         );
       }
     }
@@ -149,14 +144,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
     final showtime = widget.checkoutData['showtime'] as Showtime;
     final selectedSeats = widget.checkoutData['selectedSeats'] as List<String>;
     final totalAmount = selectedSeats.length * showtime.price;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colorScheme.background,
       appBar: AppBar(
-        title: const Text('Complete Payment', style: TextStyle(color: AppColors.textPrimary)),
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
+        title: const Text('Complete Payment'),
       ),
       body: Center(
         child: ConstrainedBox(
@@ -169,17 +162,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   return Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(flex: 3, child: _buildPaymentForm()),
+                      Expanded(flex: 3, child: _buildPaymentForm(colorScheme)),
                       const SizedBox(width: 48),
-                      Expanded(flex: 2, child: _buildOrderSummary(totalAmount)),
+                      Expanded(flex: 2, child: _buildOrderSummary(totalAmount, colorScheme)),
                     ],
                   );
                 }
                 return Column(
                   children: [
-                    _buildOrderSummary(totalAmount),
+                    _buildOrderSummary(totalAmount, colorScheme),
                     const SizedBox(height: 32),
-                    _buildPaymentForm(),
+                    _buildPaymentForm(colorScheme),
                   ],
                 );
               },
@@ -190,7 +183,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  Widget _buildPaymentForm() {
+  Widget _buildPaymentForm(ColorScheme colorScheme) {
     return Form(
       key: _formKey,
       child: Column(
@@ -200,11 +193,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                child: const Icon(Icons.fast_forward, color: Colors.white, size: 20),
+                decoration: BoxDecoration(color: colorScheme.primaryContainer, shape: BoxShape.circle),
+                child: Icon(Icons.fast_forward, color: colorScheme.onPrimaryContainer, size: 20),
               ),
               const SizedBox(width: 12),
-              const Text('CinePay Gateway', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+              Text('CinePay Gateway', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 32),
@@ -268,14 +261,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
           SizedBox(
             width: double.infinity,
             height: 56,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                elevation: 4,
-              ),
+            child: FilledButton(
               onPressed: _processFinalPayment,
-              child: const Text('Pay Now', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+              child: const Text('Pay Now', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ),
           ),
         ],
@@ -297,115 +285,89 @@ class _PaymentScreenState extends State<PaymentScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textPrimary)),
+        Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
           obscureText: obscureText,
           keyboardType: keyboardType,
-          style: const TextStyle(color: AppColors.textPrimary),
           validator: validator,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(color: Colors.grey.shade400),
-            prefixIcon: icon != null ? Icon(icon, color: AppColors.primary) : null,
-            filled: true,
-            fillColor: AppColors.cardColor,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.red, width: 2),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.red, width: 2),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primary, width: 2),
-            ),
+            prefixIcon: icon != null ? Icon(icon) : null,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildOrderSummary(double totalAmount) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.cardColor,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildVirtualCard(),
-          const SizedBox(height: 32),
-          const Divider(color: Colors.black12),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text('Company', style: TextStyle(color: AppColors.textSecondary)),
-              Text('CineBook Cinemas', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text('Service Fee', style: TextStyle(color: AppColors.textSecondary)),
-              Text('LKR 0.00', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
+  Widget _buildOrderSummary(double totalAmount, ColorScheme colorScheme) {
+    return Card(
+      elevation: 0,
+      color: colorScheme.surfaceVariant,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildVirtualCard(colorScheme),
+            const SizedBox(height: 32),
+            const Divider(),
+            const SizedBox(height: 16),
+            Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('You have to Pay', style: TextStyle(fontSize: 16, color: AppColors.textSecondary)),
-                Text(
-                  'LKR ${totalAmount.toInt()}',
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                ),
+                Text('Company', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                const Text('CineBook Cinemas', style: TextStyle(fontWeight: FontWeight.bold)),
               ],
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Service Fee', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                const Text('LKR 0.00', style: TextStyle(fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('You have to Pay', style: TextStyle(fontSize: 16, color: colorScheme.onSurface)),
+                  Text(
+                    'LKR ${totalAmount.toInt()}',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: colorScheme.primary),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  // Virtual Card dynamically updates using State Variables
-  Widget _buildVirtualCard() {
+  Widget _buildVirtualCard(ColorScheme colorScheme) {
     return Container(
       width: double.infinity,
       height: 190,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF8E2DE2), Color(0xFF4A00E0)], 
+        gradient: LinearGradient(
+          colors: [colorScheme.primary, colorScheme.tertiary], 
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.4),
+            color: colorScheme.primary.withOpacity(0.4),
             blurRadius: 16,
             offset: const Offset(0, 8),
           )
@@ -418,13 +380,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(Icons.memory, color: Colors.yellow.shade600, size: 32),
+              Icon(Icons.memory, color: Colors.yellow.shade300, size: 32),
               const Icon(Icons.wifi, color: Colors.white70),
             ],
           ),
           Text(
             _displayCardNumber,
-            style: const TextStyle(color: Colors.white, fontSize: 18, letterSpacing: 2, fontFamily: 'Courier'),
+            style: const TextStyle(color: Colors.white, fontSize: 18, letterSpacing: 2, fontFamily: 'monospace'),
             overflow: TextOverflow.ellipsis,
           ),
           Row(

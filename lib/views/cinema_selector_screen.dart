@@ -1,40 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../core/app_colors.dart';
 import '../models/core_models.dart';
 import 'cinema_map_screen.dart';
 import '../services/database_service.dart';
 
-class CinemaSelectorScreen extends StatelessWidget {
+class CinemaSelectorScreen extends StatefulWidget {
   final String movieId;
   const CinemaSelectorScreen({Key? key, required this.movieId}) : super(key: key);
 
   @override
+  State<CinemaSelectorScreen> createState() => _CinemaSelectorScreenState();
+}
+
+class _CinemaSelectorScreenState extends State<CinemaSelectorScreen> {
+  final DatabaseService _db = DatabaseService();
+  String _selectedDate = 'Today';
+
+  @override
   Widget build(BuildContext context) {
-    final DatabaseService _db = DatabaseService();
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colorScheme.background,
       appBar: AppBar(
         title: Column(
-          children: const [
-            Text('Velocity Strike', style: TextStyle(fontSize: 18)),
-            Text('Action / Thriller', style: TextStyle(fontSize: 12, fontWeight: FontWeight.normal)),
+          children: [
+            const Text('Velocity Strike', style: TextStyle(fontSize: 18)),
+            Text('Action / Thriller', style: TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: colorScheme.onSurfaceVariant)),
           ],
         ),
       ),
       body: Column(
         children: [
           Container(
-            color: AppColors.primary,
+            width: double.infinity,
+            color: colorScheme.surfaceVariant,
             padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildDateChip('Today', true),
-                _buildDateChip('Tomorrow', false),
-                _buildDateChip('Mar 19', false),
-              ],
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  _buildDateChip('Today', context),
+                  const SizedBox(width: 8),
+                  _buildDateChip('Tomorrow', context),
+                  const SizedBox(width: 8),
+                  _buildDateChip('Mar 19', context),
+                ],
+              ),
             ),
           ),
           Padding(
@@ -43,10 +56,10 @@ class CinemaSelectorScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
-                  children: const [
-                    Icon(Icons.location_on_outlined, size: 20, color: AppColors.textSecondary),
-                    SizedBox(width: 8),
-                    Text('Colombo, Sri Lanka'),
+                  children: [
+                    Icon(Icons.location_on_outlined, size: 20, color: colorScheme.onSurfaceVariant),
+                    const SizedBox(width: 8),
+                    const Text('Colombo, Sri Lanka'),
                   ],
                 ),
                 TextButton.icon(
@@ -89,34 +102,22 @@ class CinemaSelectorScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDateChip(String label, bool isSelected) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      decoration: BoxDecoration(
-        color: isSelected ? Colors.white : Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isSelected ? Colors.white : Colors.white54),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.calendar_today, size: 16, color: isSelected ? AppColors.primary : Colors.white),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: TextStyle(
-              color: isSelected ? AppColors.primary : Colors.white,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-        ],
-      ),
+  Widget _buildDateChip(String label, BuildContext context) {
+    return ChoiceChip(
+      label: Text(label),
+      selected: _selectedDate == label,
+      onSelected: (bool selected) {
+        setState(() {
+          if (selected) _selectedDate = label;
+        });
+      },
     );
   }
 
   Widget _buildCinemaCard(BuildContext context, Cinema cinema) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -129,7 +130,7 @@ class CinemaSelectorScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(cinema.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text(cinema.name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 4),
                       InkWell(
                         onTap: () {
@@ -138,9 +139,9 @@ class CinemaSelectorScreen extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.map, size: 14, color: AppColors.primary),
+                            Icon(Icons.map, size: 16, color: colorScheme.primary),
                             const SizedBox(width: 4),
-                            Expanded(child: Text(cinema.location, style: const TextStyle(color: AppColors.primary, fontSize: 13, decoration: TextDecoration.underline))),
+                            Expanded(child: Text(cinema.location, style: TextStyle(color: colorScheme.primary, fontSize: 13, decoration: TextDecoration.underline))),
                           ],
                         ),
                       ),
@@ -150,14 +151,14 @@ class CinemaSelectorScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
+                    color: colorScheme.secondaryContainer,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.location_on, size: 14, color: AppColors.textSecondary),
+                      Icon(Icons.location_on, size: 14, color: colorScheme.onSecondaryContainer),
                       const SizedBox(width: 4),
-                      Text('${cinema.distanceKm} km', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                      Text('${cinema.distanceKm} km', style: TextStyle(fontSize: 12, color: colorScheme.onSecondaryContainer, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
@@ -167,7 +168,7 @@ class CinemaSelectorScreen extends StatelessWidget {
               padding: EdgeInsets.symmetric(vertical: 16.0),
               child: Divider(),
             ),
-            const Text('Showtimes', style: TextStyle(fontWeight: FontWeight.w500)),
+            Text('Showtimes', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
             const SizedBox(height: 12),
             Wrap(
               spacing: 12,
@@ -181,19 +182,21 @@ class CinemaSelectorScreen extends StatelessWidget {
   }
 
   Widget _buildShowtimeCard(BuildContext context, Cinema cinema, Showtime showtime) {
-    return GestureDetector(
+    final colorScheme = Theme.of(context).colorScheme;
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
       onTap: () {
         context.push('/seat-selection', extra: {
-          'movieId': movieId,
+          'movieId': widget.movieId,
           'cinema': cinema,
           'showtime': showtime,
         });
       },
       child: Container(
-        width: 120, // Increased from 100 to fix layout overflow
+        width: 120,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: colorScheme.outlineVariant),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -210,16 +213,20 @@ class CinemaSelectorScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: showtime.format == 'IMAX' ? AppColors.secondary : Colors.grey.shade200,
+                color: showtime.format == 'IMAX' ? colorScheme.tertiaryContainer : colorScheme.surfaceVariant,
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
                 showtime.format,
-                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 10, 
+                  fontWeight: FontWeight.bold,
+                  color: showtime.format == 'IMAX' ? colorScheme.onTertiaryContainer : colorScheme.onSurfaceVariant
+                ),
               ),
             ),
             const SizedBox(height: 8),
-            Text('LKR ${showtime.price.toInt()}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+            Text('LKR ${showtime.price.toInt()}', style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
             const SizedBox(height: 4),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -228,15 +235,15 @@ class CinemaSelectorScreen extends StatelessWidget {
                   '${showtime.availableSeats} seats',
                   style: TextStyle(
                     fontSize: 10,
-                    color: showtime.isFillingFast ? AppColors.error : AppColors.success,
+                    color: showtime.isFillingFast ? colorScheme.error : colorScheme.primary,
                   ),
                 ),
                 if (showtime.isFillingFast) ...[
                   const SizedBox(width: 4),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                    decoration: BoxDecoration(color: AppColors.error, borderRadius: BorderRadius.circular(4)),
-                    child: const Text('Filling Fast', style: TextStyle(color: Colors.white, fontSize: 8)),
+                    decoration: BoxDecoration(color: colorScheme.errorContainer, borderRadius: BorderRadius.circular(4)),
+                    child: Text('Filling Fast', style: TextStyle(color: colorScheme.onErrorContainer, fontSize: 8, fontWeight: FontWeight.bold)),
                   ),
                 ]
               ],

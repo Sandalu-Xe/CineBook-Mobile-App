@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../models/core_models.dart';
 import '../services/database_service.dart';
-import '../core/app_colors.dart';
 
 class CinemaMapScreen extends StatefulWidget {
   final Cinema? targetCinema;
@@ -38,7 +37,6 @@ class _CinemaMapScreenState extends State<CinemaMapScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Nearby Cinemas'),
-        backgroundColor: AppColors.primary,
       ),
       body: StreamBuilder<List<Cinema>>(
         stream: _db.getCinemasStream(),
@@ -53,7 +51,6 @@ class _CinemaMapScreenState extends State<CinemaMapScreen> {
 
           final cinemas = snapshot.data ?? [];
           
-          // Predefined distinct colors for mapping
           final List<double> markerHues = [
             BitmapDescriptor.hueViolet,
             BitmapDescriptor.hueRed,
@@ -64,7 +61,6 @@ class _CinemaMapScreenState extends State<CinemaMapScreen> {
             BitmapDescriptor.hueCyan,
           ];
 
-          // Generate Map Markers
           int idx = 0;
           final Set<Marker> markers = cinemas.map((cinema) {
             final hue = markerHues[idx % markerHues.length];
@@ -84,7 +80,7 @@ class _CinemaMapScreenState extends State<CinemaMapScreen> {
             onMapCreated: _onMapCreated,
             initialCameraPosition: CameraPosition(
               target: _colomboCenter,
-              zoom: widget.targetCinema != null ? 15.0 : 12.0, // Zoom closer if target is provided
+              zoom: widget.targetCinema != null ? 15.0 : 12.0, 
             ),
             markers: markers,
             myLocationEnabled: true,

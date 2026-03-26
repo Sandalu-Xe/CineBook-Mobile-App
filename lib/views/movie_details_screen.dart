@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import '../core/app_colors.dart';
 import '../viewmodels/home_viewmodel.dart';
 import '../models/core_models.dart';
 import 'trailer_screen.dart';
@@ -12,31 +11,31 @@ class MovieDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Find the movie from the existing ViewModel
     final viewModel = Provider.of<HomeViewModel>(context, listen: false);
     final allMovies = viewModel.currentMovies.isNotEmpty 
         ? viewModel.currentMovies 
         : [Movie(id: '1', title: 'Loading...', genre: '', duration: '', rating: 0.0, posterUrl: '', synopsis: '', isNowShowing: true)];
     final movie = allMovies.firstWhere((m) => m.id == id, orElse: () => allMovies.first);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colorScheme.background,
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(
-            expandedHeight: 300,
+          SliverAppBar.large(
+            expandedHeight: 320,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(
                 fit: StackFit.expand,
                 children: [
                   Container(
-                    color: Colors.grey.shade400,
+                    color: colorScheme.surfaceVariant,
                     child: Image.asset(
                       movie.posterUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Center(
-                        child: Icon(Icons.movie, size: 64, color: Colors.white),
+                      errorBuilder: (_, __, ___) => Center(
+                        child: Icon(Icons.movie, size: 64, color: colorScheme.onSurfaceVariant),
                       ),
                     ),
                   ),
@@ -47,14 +46,14 @@ class MovieDetailsScreen extends StatelessWidget {
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.transparent,
-                          Colors.black.withOpacity(0.8),
+                          colorScheme.background.withOpacity(0.9),
                         ],
                       ),
                     ),
                   ),
                   Center(
-                    child: GestureDetector(
-                      onTap: () {
+                    child: FilledButton.icon(
+                      onPressed: () {
                         if (movie.trailerUrl.isNotEmpty) {
                           Navigator.push(
                             context,
@@ -71,20 +70,12 @@ class MovieDetailsScreen extends StatelessWidget {
                           );
                         }
                       },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: AppColors.secondary,
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: const [
-                            Icon(Icons.play_arrow, color: Colors.black),
-                            SizedBox(width: 8),
-                            Text('Watch Trailer', style: TextStyle(fontWeight: FontWeight.bold)),
-                          ],
-                        ),
+                      icon: const Icon(Icons.play_arrow),
+                      label: const Text('Watch Trailer'),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: colorScheme.primaryContainer,
+                        foregroundColor: colorScheme.onPrimaryContainer,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       ),
                     ),
                   ),
@@ -98,9 +89,9 @@ class MovieDetailsScreen extends StatelessWidget {
           ),
           SliverToBoxAdapter(
             child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(32),
                   topRight: Radius.circular(32),
                 ),
@@ -121,12 +112,12 @@ class MovieDetailsScreen extends StatelessWidget {
                             children: [
                               Text(
                                 movie.title,
-                                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(height: 8),
                               Text(
                                 movie.genre,
-                                style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant),
                               ),
                             ],
                           ),
@@ -134,14 +125,14 @@ class MovieDetailsScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: AppColors.secondary,
-                            borderRadius: BorderRadius.circular(8),
+                            color: colorScheme.tertiaryContainer,
+                            borderRadius: BorderRadius.circular(16),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.star, size: 16),
+                              Icon(Icons.star, size: 16, color: colorScheme.onTertiaryContainer),
                               const SizedBox(width: 4),
-                              Text('${movie.rating}/10', style: const TextStyle(fontWeight: FontWeight.bold)),
+                              Text('${movie.rating}/10', style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onTertiaryContainer)),
                             ],
                           ),
                         ),
@@ -150,39 +141,40 @@ class MovieDetailsScreen extends StatelessWidget {
                     const SizedBox(height: 16),
                     Row(
                       children: [
-                        const Icon(Icons.access_time, size: 16, color: AppColors.textSecondary),
+                        Icon(Icons.access_time, size: 16, color: colorScheme.onSurfaceVariant),
                         const SizedBox(width: 8),
-                        Text(movie.duration, style: const TextStyle(color: AppColors.textSecondary)),
+                        Text(movie.duration, style: TextStyle(color: colorScheme.onSurfaceVariant)),
                         const SizedBox(width: 16),
-                        const Icon(Icons.calendar_today, size: 16, color: AppColors.textSecondary),
+                        Icon(Icons.calendar_today, size: 16, color: colorScheme.onSurfaceVariant),
                         const SizedBox(width: 8),
-                        const Text('Releasing Today', style: TextStyle(color: AppColors.textSecondary)),
+                        Text('Releasing Today', style: TextStyle(color: colorScheme.onSurfaceVariant)),
                       ],
                     ),
                     const SizedBox(height: 24),
-                    ElevatedButton(
+                    FilledButton(
                       onPressed: () {
                         context.push('/cinemas/${movie.id}');
                       },
-                      style: ElevatedButton.styleFrom(
+                      style: FilledButton.styleFrom(
                         minimumSize: const Size(double.infinity, 56),
+                        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                       child: const Text('Book Tickets'),
                     ),
                     const SizedBox(height: 32),
-                    const Text(
+                    Text(
                       'Synopsis',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 12),
                     Text(
                       movie.synopsis,
-                      style: const TextStyle(color: AppColors.textSecondary, height: 1.5),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant, height: 1.5),
                     ),
                     const SizedBox(height: 32),
-                    const Text(
+                    Text(
                       'Cast & Crew',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 12),
                     // Mock cast
@@ -198,11 +190,11 @@ class MovieDetailsScreen extends StatelessWidget {
                               children: [
                                 CircleAvatar(
                                   radius: 30,
-                                  backgroundColor: Colors.purple.shade100,
-                                  child: Text('A${index + 1}', style: const TextStyle(color: AppColors.primary)),
+                                  backgroundColor: colorScheme.secondaryContainer,
+                                  child: Text('A${index + 1}', style: TextStyle(color: colorScheme.onSecondaryContainer)),
                                 ),
                                 const SizedBox(height: 8),
-                                const Text('Actor Name', style: TextStyle(fontSize: 12)),
+                                Text('Actor Name', style: Theme.of(context).textTheme.labelMedium),
                               ],
                             ),
                           );
