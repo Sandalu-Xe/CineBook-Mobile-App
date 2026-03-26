@@ -20,7 +20,7 @@ class Movie {
     required this.posterUrl,
     required this.synopsis,
     required this.isNowShowing,
-    this.trailerUrl = '',
+    this.trailerUrl = 'kgv8jf_8dm0',
   });
 
   factory Movie.fromFirestore(DocumentSnapshot doc) {
@@ -38,7 +38,9 @@ class Movie {
       posterUrl: data['posterUrl'] ?? '',
       synopsis: data['synopsis'] ?? '',
       isNowShowing: data['isNowShowing'] ?? false,
-      trailerUrl: data['trailerUrl'] ?? '',
+      trailerUrl: (data['trailerUrl'] == null || data['trailerUrl'] == '' || data['trailerUrl'] == 'dQw4w9WgXcQ')
+          ? 'kgv8jf_8dm0'
+          : data['trailerUrl'],
     );
   }
 

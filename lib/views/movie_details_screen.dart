@@ -1,13 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import '../viewmodels/home_viewmodel.dart';
 import '../models/core_models.dart';
-import 'trailer_screen.dart';
 
-class MovieDetailsScreen extends StatelessWidget {
+class MovieDetailsScreen extends StatefulWidget {
   final String id;
   const MovieDetailsScreen({Key? key, required this.id}) : super(key: key);
+
+  @override
+  State<MovieDetailsScreen> createState() => _MovieDetailsScreenState();
+}
+
+class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
+  bool _isPlayingTrailer = false;
+  YoutubePlayerController? _controller;
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  void _playTrailer(String videoId) {
+    setState(() {
+      _controller = YoutubePlayerController(
+        initialVideoId: videoId,
+        flags: const YoutubePlayerFlags(
+          autoPlay: true,
+          mute: false,
+          enableCaption: false,
+          forceHD: true,
+        ),
+      );
+      _isPlayingTrailer = true;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +44,7 @@ class MovieDetailsScreen extends StatelessWidget {
     final allMovies = viewModel.currentMovies.isNotEmpty 
         ? viewModel.currentMovies 
         : [Movie(id: '1', title: 'Loading...', genre: '', duration: '', rating: 0.0, posterUrl: '', synopsis: '', isNowShowing: true)];
-    final movie = allMovies.firstWhere((m) => m.id == id, orElse: () => allMovies.first);
+    final movie = allMovies.firstWhere((m) => m.id == widget.id, orElse: () => allMovies.first);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -26,61 +55,67 @@ class MovieDetailsScreen extends StatelessWidget {
             expandedHeight: 320,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Container(
-                    color: colorScheme.surfaceVariant,
-                    child: Image.asset(
-                      movie.posterUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Center(
-                        child: Icon(Icons.movie, size: 64, color: colorScheme.onSurfaceVariant),
+              background: _isPlayingTrailer && _controller != null 
+                ? SafeArea(
+                    child: Center(
+                      child: YoutubePlayer(
+                        controller: _controller!,
+                        showVideoProgressIndicator: true,
+                        progressIndicatorColor: colorScheme.primary,
+                        progressColors: ProgressBarColors(
+                          playedColor: colorScheme.primary,
+                          handleColor: colorScheme.primaryContainer,
+                        ),
                       ),
                     ),
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          colorScheme.background.withOpacity(0.9),
-                        ],
+                  )
+                : Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Container(
+                        color: colorScheme.surfaceVariant,
+                        child: Image.asset(
+                          movie.posterUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Center(
+                            child: Icon(Icons.movie, size: 64, color: colorScheme.onSurfaceVariant),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  Center(
-                    child: FilledButton.icon(
-                      onPressed: () {
-                        if (movie.trailerUrl.isNotEmpty) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => TrailerScreen(
-                                videoId: movie.trailerUrl,
-                                movieTitle: movie.title,
-                              ),
-                            ),
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('No trailer available for this movie.')),
-                          );
-                        }
-                      },
-                      icon: const Icon(Icons.play_arrow),
-                      label: const Text('Watch Trailer'),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: colorScheme.primaryContainer,
-                        foregroundColor: colorScheme.onPrimaryContainer,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              colorScheme.background.withOpacity(0.9),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
+                      Center(
+                        child: FilledButton.icon(
+                          onPressed: () {
+                            if (movie.trailerUrl.isNotEmpty) {
+                              _playTrailer(movie.trailerUrl);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('No trailer available for this movie.')),
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.play_arrow),
+                          label: const Text('Watch Trailer'),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: colorScheme.primaryContainer.withOpacity(0.9),
+                            foregroundColor: colorScheme.onPrimaryContainer,
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
             ),
             actions: [
               IconButton(onPressed: () {}, icon: const Icon(Icons.share)),
@@ -177,7 +212,6 @@ class MovieDetailsScreen extends StatelessWidget {
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 12),
-                    // Mock cast
                     SizedBox(
                       height: 100,
                       child: ListView.builder(
